@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two Worlds, One Map — Spain · Morocco · Madeira</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0A0E14; --ink:#11161F; --ink2:#161D29;
+    --gold:#D9B45B; --gold-dim:#9A8341;
+    --holo:#6FB7C9; --ember:#C2683B; --steel:#8FA6C4;
+    --mist:#C9D2DE; --mute:#7A8699;
+    --line:rgba(143,166,196,.14);
+    --glass:rgba(20,27,38,.55);
+    --r:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--void); color:var(--mist);
+    font-family:'Inter',system-ui,sans-serif; font-weight:300;
+    line-height:1.65; overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--gold); color:var(--void)}
+  h1,h2,h3,.disp{font-family:'Cinzel',Georgia,serif}
+  .mono{font-family:'Space Mono',monospace}
+  a{color:inherit}
+  /* ---- starfield ---- */
+  .stars{position:fixed; inset:0; z-index:0; pointer-events:none}
+  .stars i{position:absolute; background:#fff; border-radius:50%; opacity:.0; animation:tw 6s ease-in-out infinite}
+  @keyframes tw{0%,100%{opacity:.05}50%{opacity:.7}}
+  /* ---- shell ---- */
+  .wrap{position:relative; z-index:1; max-width:1080px; margin:0 auto; padding:0 22px}
+  .eyebrow{font-family:'Space Mono',monospace; font-size:.72rem; letter-spacing:.34em;
+    text-transform:uppercase; color:var(--holo); opacity:.85}
+  /* ============ HERO / CRAWL ============ */
+  .hero{min-height:100svh; display:flex; flex-direction:column; justify-content:flex-end;
+    align-items:center; text-align:center; position:relative; perspective:480px; overflow:hidden;
+    padding-bottom:15vh}
+  .crawl-mask{position:absolute; top:0; left:0; right:0; height:56%; display:flex;
+    align-items:flex-end; justify-content:center; padding:0 20px 8px;
+    -webkit-mask-image:linear-gradient(to bottom, transparent 2%, #000 42%, #000 88%, transparent 100%);
+            mask-image:linear-gradient(to bottom, transparent 2%, #000 42%, #000 88%, transparent 100%)}
+  .crawl{transform:rotateX(40deg); transform-origin:50% 100%; max-width:540px; color:var(--gold);
+    opacity:.78}
+  .crawl p{font-family:'Space Mono',monospace; font-size:.84rem; letter-spacing:.04em;
+    margin:0 0 1.05em; line-height:1.85; text-shadow:0 0 18px rgba(217,180,91,.25)}
+  .hero-core{position:relative; z-index:3}
+  .hero h1{font-size:clamp(2.5rem,8vw,5.4rem); font-weight:700; line-height:.98;
+    letter-spacing:.02em; color:#F4ECD8; text-shadow:0 0 40px rgba(111,183,201,.18)}
+  .hero h1 .amp{color:var(--holo); font-weight:500}
+  .hero .sub{margin-top:18px; font-size:.96rem; letter-spacing:.02em; color:var(--mist)}
+  .route-line{margin-top:14px; font-family:'Space Mono',monospace; font-size:.74rem;
+    letter-spacing:.16em; color:var(--mute)}
+  .scrollcue{position:absolute; bottom:26px; left:50%; transform:translateX(-50%);
+    font-family:'Space Mono',monospace; font-size:.66rem; letter-spacing:.3em; color:var(--mute);
+    text-transform:uppercase; animation:bob 2.4s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translate(-50%,0); opacity:.5}50%{transform:translate(-50%,8px); opacity:1}}
+  /* ============ SECTION SCAFFOLD ============ */
+  section{padding:88px 0; position:relative}
+  .sec-head{margin-bottom:34px}
+  .sec-head h2{font-size:clamp(1.6rem,4vw,2.5rem); font-weight:600; color:#EFE7D2; letter-spacing:.02em}
+  .sec-head .eyebrow{display:block; margin-bottom:12px}
+  .lede{max-width:620px; color:var(--mute); font-size:1rem; margin-top:10px}
+  /* ============ STAR-CHART MAP (signature) ============ */
+  .chart-wrap{position:relative; border:1px solid var(--line); border-radius:var(--r);
+    background:radial-gradient(120% 90% at 50% 18%, rgba(111,183,201,.08), transparent 60%), var(--ink);
+    overflow:hidden}
+  .chart-wrap svg{display:block; width:100%; height:auto}
+  .ring{fill:none; stroke:var(--line); stroke-width:1}
+  .tick{stroke:rgba(143,166,196,.18); stroke-width:1}
+  .route{fill:none; stroke:var(--gold); stroke-width:2.4;
+    filter:drop-shadow(0 0 6px rgba(217,180,91,.55));
+    stroke-dasharray:1; stroke-dashoffset:1; }
+  .node{cursor:pointer}
+  .node .halo{fill:var(--holo); opacity:0; transition:opacity .5s}
+  .node .dot{fill:var(--void); stroke:var(--holo); stroke-width:2; transition:all .5s}
+  .node.lit .halo{opacity:.18}
+  .node.lit .dot{fill:var(--gold); stroke:var(--gold);
+    filter:drop-shadow(0 0 8px rgba(217,180,91,.8))}
+  .node text{font-family:'Space Mono',monospace; fill:var(--mist); font-size:13px;
+    letter-spacing:.06em; opacity:.45; transition:opacity .5s}
+  .node .coord{fill:var(--holo); font-size:9px; opacity:.0; transition:opacity .5s}
+  .node.lit text{opacity:1} .node.lit .coord{opacity:.7}
+  .node:hover .dot{stroke:var(--gold)}
+  .legend{display:flex; gap:20px; flex-wrap:wrap; padding:14px 18px; border-top:1px solid var(--line);
+    font-family:'Space Mono',monospace; font-size:.7rem; letter-spacing:.1em; color:var(--mute)}
+  .legend span{display:inline-flex; align-items:center; gap:7px}
+  .swatch{width:9px; height:9px; border-radius:50%}
+  /* ============ FILTER BAR ============ */
+  .filters{display:flex; gap:10px; flex-wrap:wrap; margin:30px 0 8px}
+  .filters button{background:transparent; color:var(--mute); border:1px solid var(--line);
+    border-radius:999px; padding:8px 16px; font-family:'Space Mono',monospace; font-size:.72rem;
+    letter-spacing:.12em; text-transform:uppercase; cursor:pointer; transition:all .25s}
+  .filters button:hover{color:var(--mist); border-color:var(--mute)}
+  .filters button[aria-pressed="true"]{background:var(--gold); color:var(--void);
+    border-color:var(--gold); font-weight:700}
+  /* ============ CITY DOSSIERS ============ */
+  .dossier{display:grid; grid-template-columns:1fr 1fr; gap:0; margin-bottom:26px;
+    border:1px solid var(--line); border-radius:var(--r); overflow:hidden;
+    background:var(--glass); backdrop-filter:blur(8px);
+    opacity:0; transform:translateY(26px); transition:opacity .8s, transform .8s, max-height .5s}
+  .dossier.in{opacity:1; transform:none}
+  .dossier.hide{display:none}
+  .face{position:relative; min-height:280px; padding:30px}
+  .face.reel{display:flex; flex-direction:column; justify-content:center; padding-top:54px;
+    background:linear-gradient(135deg, rgba(111,183,201,.08), rgba(10,14,20,.4))}
+  /* image slot: drop your own photo via background-image */
+  .face.real{display:flex; flex-direction:column; justify-content:flex-end;
+    background:linear-gradient(180deg, rgba(10,14,20,.15), rgba(10,14,20,.85)),
+      var(--photo, radial-gradient(120% 120% at 70% 10%, #243042, #0d121b));
+    background-size:cover; background-position:center}
+  .badge{position:absolute; top:18px; left:18px; font-family:'Space Mono',monospace;
+    font-size:.62rem; letter-spacing:.16em; text-transform:uppercase; padding:5px 11px;
+    border-radius:999px; border:1px solid; }
+  .b-sw{color:var(--steel); border-color:rgba(143,166,196,.4); background:rgba(143,166,196,.08)}
+  .b-got{color:var(--ember); border-color:rgba(194,104,59,.4); background:rgba(194,104,59,.08)}
+  .b-both{color:var(--gold); border-color:rgba(217,180,91,.4); background:rgba(217,180,91,.08)}
+  .b-real{color:var(--holo); border-color:rgba(111,183,201,.4); background:rgba(111,183,201,.08)}
+  .stop-no{font-family:'Space Mono',monospace; font-size:.7rem; letter-spacing:.2em; color:var(--mute)}
+  .real h3{font-size:1.9rem; color:#F2EAD6; font-weight:600; margin:4px 0 2px}
+  .real .where{font-family:'Space Mono',monospace; font-size:.72rem; letter-spacing:.1em; color:var(--holo)}
+  .real .anchor{margin-top:12px; font-size:.92rem; color:var(--mist)}
+  .real .anchor b{color:var(--gold); font-weight:600}
+  .reel .kicker{font-family:'Space Mono',monospace; font-size:.66rem; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--mute); margin-bottom:14px}
+  .reel .world{font-family:'Cinzel',serif; font-size:1.5rem; color:#EFE7D2; line-height:1.25}
+  .reel .prod{font-family:'Space Mono',monospace; font-size:.74rem; color:var(--steel); margin-top:8px; letter-spacing:.06em}
+  .reel .note{margin-top:14px; font-size:.9rem; color:var(--mute)}
+  .reveal-btn{margin-top:18px; align-self:flex-start; background:transparent; border:1px solid var(--gold-dim);
+    color:var(--gold); font-family:'Space Mono',monospace; font-size:.68rem; letter-spacing:.14em;
+    text-transform:uppercase; padding:9px 15px; border-radius:8px; cursor:pointer; transition:all .25s}
+  .reveal-btn:hover{background:var(--gold); color:var(--void)}
+  /* small grids */
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px}
+  .card{border:1px solid var(--line); border-radius:var(--r); padding:22px; background:var(--glass);
+    backdrop-filter:blur(6px); transition:border-color .3s, transform .3s}
+  .card:hover{border-color:var(--gold-dim); transform:translateY(-3px)}
+  .card .tag{font-family:'Space Mono',monospace; font-size:.62rem; letter-spacing:.18em; color:var(--holo);
+    text-transform:uppercase}
+  .card h4{font-family:'Cinzel',serif; font-size:1.12rem; color:#EFE7D2; font-weight:600; margin:8px 0 6px}
+  .card p{font-size:.88rem; color:var(--mute)}
+  /* ============ ESTABLISHING SHOTS ============ */
+  .frames{display:grid; grid-template-columns:repeat(auto-fit,minmax(248px,1fr)); gap:14px}
+  .frame{position:relative; aspect-ratio:4/3; border:1px solid var(--line); border-radius:var(--r);
+    overflow:hidden; background:var(--ph-fallback,var(--ink)); background-size:cover; background-position:center;
+    transition:transform .35s, border-color .35s}
+  .frame:hover{transform:translateY(-3px); border-color:var(--gold-dim)}
+  .frame::after{content:""; position:absolute; inset:0;
+    background:linear-gradient(180deg,transparent 38%,rgba(8,11,17,.92))}
+  .frame .slate{position:absolute; top:12px; left:12px; z-index:2; font-family:'Space Mono',monospace;
+    font-size:.6rem; letter-spacing:.16em; color:var(--mist); background:rgba(8,11,17,.55);
+    padding:4px 9px; border-radius:6px; border:1px solid var(--line)}
+  .frame .cap{position:absolute; left:0; right:0; bottom:0; z-index:2; padding:16px}
+  .frame .cap .reel{font-family:'Cinzel',serif; color:#F1E9D6; font-size:1.06rem; line-height:1.2}
+  .frame .cap .real{font-family:'Space Mono',monospace; font-size:.64rem; letter-spacing:.12em;
+    color:var(--holo); text-transform:uppercase; margin-top:5px}
+  /* ============ COUNTDOWN ============ */
+  .count{display:flex; gap:18px; flex-wrap:wrap; margin-top:8px}
+  .count .unit{border:1px solid var(--line); border-radius:12px; padding:18px 22px; min-width:96px;
+    text-align:center; background:var(--ink)}
+  .count .n{font-family:'Cinzel',serif; font-size:2.4rem; color:var(--gold); line-height:1}
+  .count .l{font-family:'Space Mono',monospace; font-size:.6rem; letter-spacing:.2em; color:var(--mute);
+    text-transform:uppercase; margin-top:8px}
+  .count .edit{font-family:'Space Mono',monospace; font-size:.68rem; color:var(--mute); margin-top:14px}
+  /* ============ FOOTER ============ */
+  footer{padding:60px 0 80px; border-top:1px solid var(--line); text-align:center}
+  footer .sig{font-family:'Cinzel',serif; font-size:1.1rem; color:var(--gold); letter-spacing:.06em}
+  footer .fine{font-family:'Space Mono',monospace; font-size:.66rem; color:var(--mute);
+    letter-spacing:.08em; margin-top:14px; max-width:560px; margin-left:auto; margin-right:auto}
+  /* ============ RESPONSIVE ============ */
+  @media(max-width:720px){
+    .dossier{grid-template-columns:1fr}
+    .face{min-height:220px}
+    .crawl p{font-size:.8rem}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none !important; scroll-behavior:auto !important; transition:opacity .3s !important}
+    .crawl{transform:none}
+    .route{stroke-dashoffset:0 !important}
+  }
+  :focus-visible{outline:2px solid var(--holo); outline-offset:3px}
+</style>
+</head>
+<body>
+<div class="stars" id="stars" aria-hidden="true"></div>
+
+<!-- ===================== HERO ===================== -->
+<header class="hero">
+  <div class="crawl-mask" aria-hidden="true">
+    <div class="crawl">
+      <p>Five real places. Two impossible worlds.</p>
+      <p>From a palace that became Naboo to a kasbah that stood in for a slave city beyond the Narrow Sea, this route traces the ground where a galaxy and seven kingdoms were filmed —</p>
+      <p>— with beaches, deserts, and an island at the edge of the map waiting between the scenes.</p>
+    </div>
+  </div>
+  <div class="hero-core wrap">
+    <p class="eyebrow">A filming-location pilgrimage</p>
+    <h1>Two Worlds,<br><span class="amp">One</span> Map</h1>
+    <p class="sub">Star Wars &amp; Game of Thrones across Spain · Morocco · Madeira</p>
+    <p class="route-line">BARCELONA — SEVILLE — GRANADA — MARRAKECH — FUNCHAL</p>
+  </div>
+  <div class="scrollcue">Scroll to chart the route</div>
+</header>
+
+<!-- ===================== STAR-CHART MAP ===================== -->
+<section id="map">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">The Route</span>
+      <h2>Chart the crossing</h2>
+      <p class="lede">The line draws as you scroll. Each beacon lights when the route reaches it — tap a beacon to open its dossier.</p>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="chart-wrap">
+      <svg viewBox="0 0 1000 560" role="img" aria-label="Stylised route chart from Barcelona to Funchal">
+        <!-- clockwork rings -->
+        <g opacity="0.8">
+          <circle class="ring" cx="500" cy="280" r="250"/>
+          <circle class="ring" cx="500" cy="280" r="186"/>
+          <circle class="ring" cx="500" cy="280" r="120"/>
+          <g id="ticks"></g>
+        </g>
+        <!-- route path: BCN -> SEV -> GRA -> MAR -> FNC -->
+        <path id="route" class="route" pathLength="1"
+          d="M 812 150 L 360 250 L 470 360 L 540 470 L 120 330"/>
+        <!-- nodes -->
+        <g class="node" data-city="barcelona" tabindex="0" role="button" aria-label="Barcelona">
+          <circle class="halo" cx="812" cy="150" r="26"/><circle class="dot" cx="812" cy="150" r="7"/>
+          <text x="812" y="128" text-anchor="middle">BARCELONA</text>
+          <text class="coord" x="812" y="172" text-anchor="middle">41.4°N · GAUDÍ</text>
+        </g>
+        <g class="node" data-city="seville" tabindex="0" role="button" aria-label="Seville">
+          <circle class="halo" cx="360" cy="250" r="26"/><circle class="dot" cx="360" cy="250" r="7"/>
+          <text x="360" y="228" text-anchor="middle">SEVILLE</text>
+          <text class="coord" x="360" y="272" text-anchor="middle">NABOO · DORNE</text>
+        </g>
+        <g class="node" data-city="granada" tabindex="0" role="button" aria-label="Granada">
+          <circle class="halo" cx="470" cy="360" r="26"/><circle class="dot" cx="470" cy="360" r="7"/>
+          <text x="470" y="338" text-anchor="middle">GRANADA</text>
+          <text class="coord" x="470" y="382" text-anchor="middle">37.2°N · REAL</text>
+        </g>
+        <g class="node" data-city="marrakech" tabindex="0" role="button" aria-label="Marrakech">
+          <circle class="halo" cx="540" cy="470" r="26"/><circle class="dot" cx="540" cy="470" r="7"/>
+          <text x="540" y="448" text-anchor="middle">MARRAKECH</text>
+          <text class="coord" x="540" y="492" text-anchor="middle">YUNKAI · DESERT</text>
+        </g>
+        <g class="node" data-city="funchal" tabindex="0" role="button" aria-label="Funchal">
+          <circle class="halo" cx="120" cy="330" r="26"/><circle class="dot" cx="120" cy="330" r="7"/>
+          <text x="120" y="308" text-anchor="middle">FUNCHAL</text>
+          <text class="coord" x="120" y="352" text-anchor="middle">ATLANTIC EDGE</text>
+        </g>
+      </svg>
+      <div class="legend">
+        <span><i class="swatch" style="background:var(--gold)"></i> Route</span>
+        <span><i class="swatch" style="background:var(--steel)"></i> Star Wars</span>
+        <span><i class="swatch" style="background:var(--ember)"></i> Game of Thrones</span>
+        <span><i class="swatch" style="background:var(--holo)"></i> Real-world wonder</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== DOSSIERS ===================== -->
+<section id="dossiers">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">The Stops</span>
+      <h2>Real ↔ Reel</h2>
+      <p class="lede">Every stop is a real place that became somewhere else on screen. Reveal the reel — then drop your own photos into the real side.</p>
+    </div>
+    <div class="filters" role="group" aria-label="Filter stops by world">
+      <button data-f="all" aria-pressed="true">All</button>
+      <button data-f="sw" aria-pressed="false">Star Wars</button>
+      <button data-f="got" aria-pressed="false">Game of Thrones</button>
+      <button data-f="both" aria-pressed="false">Both</button>
+      <button data-f="real" aria-pressed="false">Real-world</button>
+    </div>
+
+    <!-- Barcelona -->
+    <article class="dossier" id="barcelona" data-faction="both">
+      <div class="face reel">
+        <span class="badge b-both">Both Worlds</span>
+        <p class="kicker">The Reel</p>
+        <p class="world">Gaudí's stone sentinels &amp; the canals of Braavos</p>
+        <p class="prod">La Pedrera rooftop · Montserrat (Andor) · Girona = Braavos / King's Landing</p>
+        <p class="note">The chimney-warriors of La Pedrera are long rumoured to have shaped a certain helmet design. An hour north, Girona's old town doubled as Braavos, where Arya trained.</p>
+        <button class="reveal-btn" data-toggle>Reveal the real ↔</button>
+      </div>
+      <div class="face real" data-photo="barcelona">
+        <span class="stop-no">STOP 01</span>
+        <h3>Barcelona</h3>
+        <p class="where">CATALONIA · SPAIN · ~3 NIGHTS</p>
+        <p class="anchor">Anchor: <b>Sagrada Família + La Pedrera rooftop.</b> Side quest: Girona day-trip, Barceloneta beach.</p>
+      </div>
+    </article>
+
+    <!-- Seville -->
+    <article class="dossier" id="seville" data-faction="both">
+      <div class="face reel">
+        <span class="badge b-both">Both Worlds</span>
+        <p class="kicker">The Reel</p>
+        <p class="world">The palace of Naboo &amp; the Water Gardens of Dorne</p>
+        <p class="prod">Plaza de España = Theed, Naboo · Real Alcázar = Dorne</p>
+        <p class="note">The marquee dual stop: a galaxy and a kingdom five minutes apart. Plaza de España played Naboo; the Alcázar next door became House Martell's Dorne.</p>
+        <button class="reveal-btn" data-toggle>Reveal the real ↔</button>
+      </div>
+      <div class="face real" data-photo="seville">
+        <span class="stop-no">STOP 02</span>
+        <h3>Seville</h3>
+        <p class="where">ANDALUSIA · SPAIN · ~3 NIGHTS</p>
+        <p class="anchor">Anchor: <b>Real Alcázar + Plaza de España.</b> Side quest: Itálica (Dragonpit), flamenco in Triana.</p>
+      </div>
+    </article>
+
+    <!-- Granada -->
+    <article class="dossier" id="granada" data-faction="real">
+      <div class="face reel">
+        <span class="badge b-real">Real-world wonder</span>
+        <p class="kicker">No fictional double</p>
+        <p class="world">The realest marvel on the route</p>
+        <p class="prod">The Alhambra — no green screen required</p>
+        <p class="note">Between two filmed fantasies sits a place that never needed to pretend to be anywhere else. The Alhambra is the original it imitators chase.</p>
+        <button class="reveal-btn" data-toggle>Reveal the real ↔</button>
+      </div>
+      <div class="face real" data-photo="granada">
+        <span class="stop-no">STOP 03</span>
+        <h3>Granada</h3>
+        <p class="where">ANDALUSIA · SPAIN · ~2 NIGHTS</p>
+        <p class="anchor">Anchor: <b>The Alhambra</b> — book timed tickets early. Side quest: Albaicín sunset, Sacromonte caves.</p>
+      </div>
+    </article>
+
+    <!-- Marrakech -->
+    <article class="dossier" id="marrakech" data-faction="both">
+      <div class="face reel">
+        <span class="badge b-both">Both Worlds</span>
+        <p class="kicker">The Reel</p>
+        <p class="world">A desert galaxy &amp; the slave-city of Yunkai</p>
+        <p class="prod">Aït Benhaddou = Yunkai · the desert that doubled for a galaxy far, far away</p>
+        <p class="note">The mud-brick kasbah outside Ouarzazate has stood in for half of cinema — Daenerys' Yunkai and a sand-blasted world of pod-racers among them.</p>
+        <button class="reveal-btn" data-toggle>Reveal the real ↔</button>
+      </div>
+      <div class="face real" data-photo="marrakech">
+        <span class="stop-no">STOP 04</span>
+        <h3>Marrakech</h3>
+        <p class="where">MOROCCO · ~3 NIGHTS</p>
+        <p class="anchor">Anchor: <b>The Medina</b> + an Aït Benhaddou day-trip. Side quest: Atlas Mountains, dawn balloon.</p>
+      </div>
+    </article>
+
+    <!-- Funchal -->
+    <article class="dossier" id="funchal" data-faction="real">
+      <div class="face reel">
+        <span class="badge b-real">Real-world wonder</span>
+        <p class="kicker">The edge of the map</p>
+        <p class="world">Where the route runs out of land</p>
+        <p class="prod">Madeira — cloud-top trails &amp; an Atlantic finish</p>
+        <p class="note">No fictional double here — just the real reward. An island of levada paths above the clouds where the saga ends and the decompress begins.</p>
+        <button class="reveal-btn" data-toggle>Reveal the real ↔</button>
+      </div>
+      <div class="face real" data-photo="funchal">
+        <span class="stop-no">STOP 05</span>
+        <h3>Funchal</h3>
+        <p class="where">MADEIRA · PORTUGAL · ~3 NIGHTS</p>
+        <p class="anchor">Anchor: <b>A levada walk + beach.</b> Side quest: Pico do Arieiro "Stairway to Heaven", volcanic pools.</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ===================== SIDE QUESTS ===================== -->
+<section id="quests">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Between the scenes</span>
+      <h2>Side quests</h2>
+    </div>
+    <div class="grid">
+      <div class="card"><span class="tag">Sea</span><h4>Barceloneta &amp; Madeira</h4><p>Two beaches built into the route — no planning, just show up.</p></div>
+      <div class="card"><span class="tag">Sand</span><h4>Sahara dune camp</h4><p>Camel trek and a night under stars — the real Tatooine, optional add-on from Marrakech.</p></div>
+      <div class="card"><span class="tag">Sky</span><h4>Stairway to Heaven</h4><p>Pico do Arieiro → Pico Ruivo, the cloud-top ridge hike on Madeira.</p></div>
+      <div class="card"><span class="tag">Wind</span><h4>Dawn balloon</h4><p>Hot-air balloon over Marrakech at first light.</p></div>
+      <div class="card"><span class="tag">Cliff</span><h4>Costa Brava coasteering</h4><p>Cliff-jumping and sea caves on a day north of Barcelona.</p></div>
+      <div class="card"><span class="tag">Cross</span><h4>Strait of Gibraltar</h4><p>Optional: ferry from Tarifa to Tangier — Europe to Africa in an hour.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ESTABLISHING SHOTS ===================== -->
+<section id="gallery">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">The frames</span>
+      <h2>Establishing shots</h2>
+      <p class="lede">The places, as the camera finds them. Drop your own photos in via the <b>PHOTOS</b> list near the bottom of the file — or leave the designed frames as they are.</p>
+    </div>
+    <div class="frames">
+      <div class="frame" data-photo="seville-naboo" style="--ph-fallback:linear-gradient(135deg,#2a3550,#0c1018)">
+        <span class="slate">SEV · 02A</span>
+        <div class="cap"><div class="reel">Theed Palace, Naboo</div><div class="real">Plaza de España · Seville</div></div>
+      </div>
+      <div class="frame" data-photo="seville-dorne" style="--ph-fallback:linear-gradient(135deg,#3a2a22,#0c1018)">
+        <span class="slate">SEV · 02B</span>
+        <div class="cap"><div class="reel">Water Gardens of Dorne</div><div class="real">Real Alcázar · Seville</div></div>
+      </div>
+      <div class="frame" data-photo="girona" style="--ph-fallback:linear-gradient(135deg,#26333a,#0c1018)">
+        <span class="slate">BCN · 01B</span>
+        <div class="cap"><div class="reel">Braavos &amp; King's Landing</div><div class="real">Girona · near Barcelona</div></div>
+      </div>
+      <div class="frame" data-photo="marrakech" style="--ph-fallback:linear-gradient(135deg,#42301c,#0c1018)">
+        <span class="slate">MAR · 04A</span>
+        <div class="cap"><div class="reel">Yunkai &amp; a desert galaxy</div><div class="real">Aït Benhaddou · Morocco</div></div>
+      </div>
+      <div class="frame" data-photo="granada" style="--ph-fallback:linear-gradient(135deg,#2d2740,#0c1018)">
+        <span class="slate">GRA · 03A</span>
+        <div class="cap"><div class="reel">The real wonder</div><div class="real">The Alhambra · Granada</div></div>
+      </div>
+      <div class="frame" data-photo="funchal" style="--ph-fallback:linear-gradient(135deg,#1f3a3a,#0c1018)">
+        <span class="slate">FNC · 05A</span>
+        <div class="cap"><div class="reel">The edge of the map</div><div class="real">Madeira · Atlantic</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== COUNTDOWN ===================== -->
+<section id="countdown">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Jump coordinates set</span>
+      <h2>Time to departure</h2>
+    </div>
+    <div class="count" id="count">
+      <div class="unit"><div class="n" id="cd-d">—</div><div class="l">Days</div></div>
+      <div class="unit"><div class="n" id="cd-h">—</div><div class="l">Hours</div></div>
+      <div class="unit"><div class="n" id="cd-m">—</div><div class="l">Minutes</div></div>
+      <div class="unit"><div class="n" id="cd-s">—</div><div class="l">Seconds</div></div>
+    </div>
+    <p class="count edit mono">Set your date in the code: <b>TRIP_DATE</b> near the bottom of the file.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="sig">Tracing Roots. Traveling Forward.</p>
+    <p class="fine">Built for ½ Man ½ Amazing. An original fan-made route guide — evokes the spirit of its inspirations through type and color; uses no studio logos, fonts, imagery, or trademarks. Place photos courtesy of Wikimedia Commons contributors (CC-licensed). Swap in your own via the <code>PHOTOS</code> list at the bottom of the file.</p>
+  </div>
+</footer>
+
+<script>
+  /* =====================================================================
+     PHOTOS — paste an image URL between the quotes for any place.
+     Your own photos work best. Free sources: unsplash.com, commons.wikimedia.org.
+     Leave blank to keep the designed frame. Example:
+       'seville': 'https://images.unsplash.com/photo-xxxx'
+     ===================================================================== */
+  const PHOTOS = {
+    /* Real, free-licensed images from Wikimedia Commons. Swap any URL for your own. */
+    'barcelona':     'https://commons.wikimedia.org/wiki/Special:FilePath/Roof%20of%20Casa%20Mila,%20Barcelona.jpg?width=1600',
+    'seville':       'https://commons.wikimedia.org/wiki/Special:FilePath/Plaza%20de%20Espa%C3%B1a,%20Seville.jpg?width=1600',
+    'granada':       'https://commons.wikimedia.org/wiki/Special:FilePath/Vista%20de%20la%20Alhambra.jpg?width=1600',
+    'marrakech':     'https://commons.wikimedia.org/wiki/Special:FilePath/A%C3%AFt%20Benhaddou,%20a%20Kasbah.JPG?width=1600',
+    'funchal':       'https://commons.wikimedia.org/wiki/Special:FilePath/Madeira%20-%20Funchal%20-%20Coastline%20(6198185729).jpg?width=1600',
+    'seville-naboo': 'https://commons.wikimedia.org/wiki/Special:FilePath/Monumental%20Plaza%20de%20Espa%C3%B1a%20de%20Sevilla.jpg?width=1600',   /* Plaza de España = Naboo */
+    'seville-dorne': 'https://commons.wikimedia.org/wiki/Special:FilePath/Real%20Alc%C3%A1zar%20-%20Seville%20-%20Patio%20de%20la%20Monteria%20-%20Palacio%20Mud%C3%A9jar%20(14549226828).jpg?width=1600',   /* Real Alcázar = Dorne */
+    'girona':        'https://commons.wikimedia.org/wiki/Special:FilePath/Onyar%20River%20Houses.JPG?width=1600'   /* Braavos / King's Landing */
+  };
+  document.querySelectorAll('[data-photo]').forEach(el=>{
+    const url = PHOTOS[el.dataset.photo];
+    if(!url) return;
+    el.style.backgroundImage = el.classList.contains('frame')
+      ? `url("${url}")`
+      : `linear-gradient(180deg, rgba(10,14,20,.15), rgba(10,14,20,.85)), url("${url}")`;
+  });
+
+  /* ---- starfield ---- */
+  (function(){
+    const s=document.getElementById('stars'); let html='';
+    for(let i=0;i<90;i++){
+      const sz=Math.random()*2+0.5;
+      html+=`<i style="left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;animation-delay:${Math.random()*6}s"></i>`;
+    }
+    s.innerHTML=html;
+  })();
+
+  /* ---- clockwork ticks ---- */
+  (function(){
+    const g=document.getElementById('ticks'); const cx=500, cy=280, r1=250, r2=240; let p='';
+    for(let a=0;a<360;a+=15){
+      const rad=a*Math.PI/180;
+      p+=`<line class="tick" x1="${cx+r1*Math.cos(rad)}" y1="${cy+r1*Math.sin(rad)}" x2="${cx+r2*Math.cos(rad)}" y2="${cy+r2*Math.sin(rad)}"/>`;
+    }
+    g.innerHTML=p;
+  })();
+
+  /* ---- scroll-linked route drawing + beacon lighting ---- */
+  (function(){
+    const route=document.getElementById('route');
+    const nodes=[...document.querySelectorAll('.node')];
+    // order matches the path: barcelona, seville, granada, marrakech, funchal
+    const order=['barcelona','seville','granada','marrakech','funchal'];
+    const mapSec=document.getElementById('map');
+    const reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+    if(reduce){ route.style.strokeDashoffset=0; nodes.forEach(n=>n.classList.add('lit')); return; }
+    function onScroll(){
+      const rect=mapSec.getBoundingClientRect();
+      const vh=window.innerHeight;
+      // progress as the section travels through the viewport
+      let prog=(vh - rect.top)/(vh*0.9 + rect.height*0.5);
+      prog=Math.max(0,Math.min(1,prog));
+      route.style.strokeDashoffset=String(1-prog);
+      // light beacons as the line passes them
+      order.forEach((city,i)=>{
+        const threshold=i/(order.length-1);
+        const node=document.querySelector(`.node[data-city="${city}"]`);
+        if(prog>=threshold-0.02) node.classList.add('lit'); else node.classList.remove('lit');
+      });
+    }
+    window.addEventListener('scroll',onScroll,{passive:true});
+    window.addEventListener('resize',onScroll); onScroll();
+  })();
+
+  /* ---- node click -> scroll to dossier ---- */
+  document.querySelectorAll('.node').forEach(n=>{
+    const go=()=>document.getElementById(n.dataset.city)?.scrollIntoView({behavior:'smooth',block:'center'});
+    n.addEventListener('click',go);
+    n.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});
+  });
+
+  /* ---- reveal-the-real toggle (cross-fade by reordering faces) ---- */
+  document.querySelectorAll('[data-toggle]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const card=btn.closest('.dossier');
+      const reel=card.querySelector('.reel'), real=card.querySelector('.real');
+      // swap visual stacking order with a quick fade
+      card.style.transition='opacity .25s';
+      card.style.opacity='0';
+      setTimeout(()=>{
+        if(getComputedStyle(real).order==='1'){ real.style.order='0'; reel.style.order='1'; btn.textContent='Reveal the real ↔'; }
+        else { real.style.order='1'; reel.style.order='0'; btn.textContent='Back to the reel ↔'; }
+        card.style.opacity='1';
+      },250);
+    });
+  });
+
+  /* ---- dossier scroll-reveal ---- */
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.18});
+  document.querySelectorAll('.dossier').forEach(d=>io.observe(d));
+
+  /* ---- faction filter ---- */
+  document.querySelectorAll('.filters button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('.filters button').forEach(x=>x.setAttribute('aria-pressed','false'));
+      b.setAttribute('aria-pressed','true');
+      const f=b.dataset.f;
+      document.querySelectorAll('.dossier').forEach(d=>{
+        const fac=d.dataset.faction;
+        const show = f==='all' || fac===f || (f==='sw'&&fac==='both') || (f==='got'&&fac==='both');
+        d.classList.toggle('hide',!show);
+      });
+    });
+  });
+
+  /* ---- countdown ----  EDIT THIS DATE: */
+  const TRIP_DATE = '2027-04-15T00:00:00';   // <-- set your real departure here
+  (function(){
+    const t=new Date(TRIP_DATE).getTime();
+    const el={d:'cd-d',h:'cd-h',m:'cd-m',s:'cd-s'};
+    function tick(){
+      const diff=t-Date.now();
+      if(diff<=0){document.getElementById('count').innerHTML='<div class="unit"><div class="n">000</div><div class="l">Wheels up</div></div>';return;}
+      const d=Math.floor(diff/864e5), h=Math.floor(diff%864e5/36e5), m=Math.floor(diff%36e5/6e4), s=Math.floor(diff%6e4/1e3);
+      document.getElementById(el.d).textContent=String(d).padStart(3,'0');
+      document.getElementById(el.h).textContent=String(h).padStart(2,'0');
+      document.getElementById(el.m).textContent=String(m).padStart(2,'0');
+      document.getElementById(el.s).textContent=String(s).padStart(2,'0');
+    }
+    tick(); setInterval(tick,1000);
+  })();
+</script>
+</body>
+</html>
